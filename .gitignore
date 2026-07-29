@@ -1,0 +1,23 @@
+# Nothing derived from the GameCube disc belongs in this repository.
+smb1_content/test/
+custom_assets/audio/extracted/
+custom_assets/audio/extracted_comn/
+custom_assets/audio/sfx/
+mb_data/*.vqt
+mb_data/*.wav
+mb_data/mus_*.adp
+
+# build output
+builds/
+*.cdi
+*.iso
+bootfile.bin
+
+# tooling noise
+__pycache__/
+*.pyc
+*:Zone.Identifier
+
+flycast.log
+
+x/
