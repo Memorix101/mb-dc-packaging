@@ -31,7 +31,7 @@ sudo apt install python3 python3-numpy python3-pil ffmpeg
 | `mkdcdisc` | bundled in `tools/`, nothing to install |
 | `mksdiso` | optional, only for the DreamShell SD-loader `.iso` |
 
-`mksdiso` canbe found [here](https://github.com/Nold360/mksdiso)
+`mksdiso` can be found [here](https://github.com/Nold360/mksdiso)
 
 ## Add your game data
 
