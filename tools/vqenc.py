@@ -26,7 +26,12 @@ import os
 import numpy as np
 
 MIN_DIM = 64
-MAX_DIM = 512
+# 256 (was 512): 512x512 VQ+MIP blobs render as noise on real PVR hardware
+# (st039/040 "digital snow"); 256+mips is proven good everywhere and keeps
+# the texture-cache benefit that flat-512 uploads lose. The runtime's
+# flat-top-level conversion (texcache.c) stays as a backstop for any old
+# oversized sidecar entry.
+MAX_DIM = 256
 CB_SIZE = 256
 KMEANS_ITERS = 12
 

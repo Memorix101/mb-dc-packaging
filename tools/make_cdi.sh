@@ -17,7 +17,7 @@
 #   tools/make_cdi.sh [output.cdi]
 #
 # Env overrides:
-#   ELF=path        use another ELF (default: smbdc.elf next to this kit)
+#   ELF=path        use another ELF (default: smbdc-release.elf next to this kit)
 #   PAD=0           skip the ~700MB CD-R padding (SD/emulator images only)
 #   SKIP_ASSETS=1   pack what is already in mb_data/, run no conversion
 #   SKIP_SDISO=1    write only the .cdi, no DreamShell _sd.iso
@@ -32,7 +32,7 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/.." && pwd)"
 mkdcdisc="${MKDCDISC:-$here/mkdcdisc}"
-elf="${ELF:-$root/smbdc.elf}"
+elf="${ELF:-$root/smbdc-release.elf}"
 out="${1:-$root/smbdc.cdi}"
 gcsrc="$root/smb1_content/test"
 cdi_name="smbdc"
