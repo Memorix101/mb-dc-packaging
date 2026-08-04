@@ -54,7 +54,9 @@ SFX="goal_enter banana_collect banana_bunch_collect fallout ball_woosh \
      vo_banana vo_banana_bunch vo_land_soft vo_land_med vo_land_hard \
      vo_goal vo_1up menu_pause menu_cursor menu_select \
      vo_tumble1 vo_tumble2 vo_tumble3 vo_tumble4 vo_tumble5 \
-     vo_tumble6 vo_tumble7"
+     vo_tumble6 vo_tumble7 \
+     an_sel_course an_sel_beginner an_sel_advanced an_sel_expert \
+     an_sel_master"
 
 # Per-character voice sets: sound.c looks for vo_<cue>_g/_k/_o (MeeMee,
 # Baby, GonGon) beside the AiAi base files and falls back to the base when

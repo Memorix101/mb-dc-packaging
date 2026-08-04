@@ -80,9 +80,9 @@ asset change is a matter of seconds.
 | Step | From | To | Note |
 |---|---|---|---|
 | 1. VQ textures | `st*/*.tpl`, `bg/*.tpl` | `mb_data/*.vqt` | GameCube textures re-encoded for the PowerVR. The slow step, runs on all CPU cores |
-| 2. Sound effects | `snd/mkb/allse.*`, `comn.*` | `custom_assets/audio/sfx/*.wav` | MusyX banks unpacked and the 89 cues the port uses named, including the MeeMee/Baby/GonGon voice sets |
+| 2. Sound effects | `snd/mkb/allse.*`, `comn.*` | `custom_assets/audio/sfx/*.wav` | MusyX banks unpacked and the 94 cues the port uses named, including the MeeMee/Baby/GonGon voice sets |
 | 3. Audio | step 2 + `snd/adp/*.adp` | `mb_data/*.wav`, `mb_data/mus_*.adp` | AICA ADPCM; effects 22 kHz mono, music 32 kHz stereo |
-| 4. Custom images | `custom_assets/*.png` | `mb_data/*.raw` | optional, see below |
+| 4. Custom images | `custom_assets/*.png` | `mb_data/*.raw` | optional; `beautifulstar`, `sparkle_starring`, `goal`, `title_bg` and `boot_logo` replace the shipped textures |
 
 Everything is incremental: outputs newer than their source are left alone.
 `FORCE=1` redoes them anyway.

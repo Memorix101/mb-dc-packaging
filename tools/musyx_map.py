@@ -64,7 +64,10 @@ def parse_proj(path):
             # the sfx table follows the last id list; scan for the count
             # right after the layer list terminator
             tab = offs[4]
-            while struct.unpack_from(">H", d, tab)[0] == 0xFFFF:
+            # comn.proj pads with a 0x0000 word between the id-list
+            # terminators and the record count (allse does not) - skip
+            # both; an empty table would read count 0 either way.
+            while struct.unpack_from(">H", d, tab)[0] in (0xFFFF, 0x0000):
                 tab += 2
             count = struct.unpack_from(">H", d, tab)[0]
             rec = tab + 4
@@ -149,11 +152,32 @@ def group_of(idx):
 
 
 def main():
+    # --bank NAME reads another bank's .proj/.pool (e.g. comn = the menu
+    # announcer bank: select_course/beginner/advanced/expert/...). The
+    # g_soundDesc walk still covers allse indices only, so with a foreign
+    # bank pass DEFINE ids (from sound.c unk0) instead of game ids.
+    bank = "allse"
+    args = sys.argv[1:]
+    if "--bank" in args:
+        i = args.index("--bank")
+        bank = args[i + 1]
+        del args[i:i + 2]
     want = set()
-    for a in sys.argv[1:]:
+    for a in args:
         want.add(int(a, 0))
-    sfx = parse_proj(os.path.join(SND, "allse.proj"))
-    macros = parse_pool(os.path.join(SND, "allse.pool"))
+    sfx = parse_proj(os.path.join(SND, bank + ".proj"))
+    macros = parse_pool(os.path.join(SND, bank + ".pool"))
+    if bank != "allse":
+        print("bank %s: define -> object -> samples" % bank)
+        for did in sorted(want if want else sfx.keys()):
+            if did not in sfx:
+                print("0x%03X  (nicht in %s.proj)" % (did, bank))
+                continue
+            oid = sfx[did][0]
+            smp = macro_samples(macros, oid)
+            print("0x%03X  object=0x%03X  samples=%s"
+                  % (did, oid, ",".join("0x%04X" % s for s in smp)))
+        return
     descs = parse_sound_desc(DECOMP_SOUND_C)
 
     # ear-verified ground truth (user, 2026-07-03): game id -> sample id

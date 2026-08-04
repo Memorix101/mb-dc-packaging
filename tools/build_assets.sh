@@ -149,9 +149,7 @@ if [ "${SKIP_PNG:-0}" != "1" ]; then
     conv png2star.py sparkle_starring.png  sparkle_ring.raw
     conv png2icon.py goal.png              goalicon.raw
     conv png2bg.py   title_bg.png          title_bg.raw
-    # bootlogo.raw is not regenerated here: the shipped one does not come
-    # from any PNG in custom_assets/. Replace it by hand with
-    # tools/png2logo.py <your.png> mb_data/bootlogo.raw
+    conv png2logo.py boot_logo.png         bootlogo.raw
     echo "[4/4] images: done"
 else
     echo "[4/4] images: skipped (SKIP_PNG=1)"

@@ -74,6 +74,12 @@ MAPPING = {
     'an_count_8':           ('allse', 0x0142),
     'an_count_9':           ('allse', 0x0143),
     'timer_beep':           ('allse', 0x01B2),  # per-second beep
+    # course-select announcer (menu), all from the comn bank
+    'an_sel_course':        ('comn',  0x0219),
+    'an_sel_beginner':      ('comn',  0x0107),
+    'an_sel_advanced':      ('comn',  0x00E4),
+    'an_sel_expert':        ('comn',  0x0156),
+    'an_sel_master':        ('comn',  0x01A7),
     # AiAi (boy group) voice set - musyx_map on the voice call sites,
     # charaId 0 picks the boy entry (VO1_*)
     'vo_banana':            ('allse', 0x0125),  # 0x281F single banana
