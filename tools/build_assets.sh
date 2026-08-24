@@ -13,7 +13,7 @@
 #   1. VQ textures   stage/background TPLs -> stNNN.vqt / bg_*.vqt
 #   2. sound effects GC MusyX banks       -> custom_assets/audio/sfx/*.wav
 #   3. audio         sfx + GC music       -> mb_data/*.wav, mus_*.adp
-#   4. custom images custom_assets/*.png  -> mb_data/*.raw
+#   4. custom images custom_assets/*.png  -> mb_data/*.raw, *.vq
 #
 # Usage:
 #   tools/build_assets.sh
@@ -150,6 +150,10 @@ if [ "${SKIP_PNG:-0}" != "1" ]; then
     conv png2icon.py goal.png              goalicon.raw
     conv png2bg.py   title_bg.png          title_bg.raw
     conv png2logo.py boot_logo.png         bootlogo.raw
+    # How-to-play controller diagram (pause menu). Offline k-means VQ keeps
+    # the coloured pad buttons that the runtime encoder washed out; needs
+    # numpy on top of Pillow (same package as the texture step).
+    conv png2vq.py   dc_controller.png     dc_controller.vq
     echo "[4/4] images: done"
 else
     echo "[4/4] images: skipped (SKIP_PNG=1)"

@@ -82,7 +82,7 @@ asset change is a matter of seconds.
 | 1. VQ textures | `st*/*.tpl`, `bg/*.tpl` | `mb_data/*.vqt` | GameCube textures re-encoded for the PowerVR. The slow step, runs on all CPU cores |
 | 2. Sound effects | `snd/mkb/allse.*`, `comn.*` | `custom_assets/audio/sfx/*.wav` | MusyX banks unpacked and the 94 cues the port uses named, including the MeeMee/Baby/GonGon voice sets |
 | 3. Audio | step 2 + `snd/adp/*.adp` | `mb_data/*.wav`, `mb_data/mus_*.adp` | AICA ADPCM; effects 22 kHz mono, music 32 kHz stereo |
-| 4. Custom images | `custom_assets/*.png` | `mb_data/*.raw` | optional; `beautifulstar`, `sparkle_starring`, `goal`, `title_bg` and `boot_logo` replace the shipped textures |
+| 4. Custom images | `custom_assets/*.png` | `mb_data/*.raw`, `*.vq` | optional; `beautifulstar`, `sparkle_starring`, `goal`, `title_bg`, `boot_logo` and `dc_controller` (pause-menu How-to-play diagram) replace the shipped textures |
 
 Everything is incremental: outputs newer than their source are left alone.
 `FORCE=1` redoes them anyway.
@@ -90,7 +90,7 @@ Everything is incremental: outputs newer than their source are left alone.
 Then `make_cdi.sh` stages the disc directory `/cd/mb_data`: the models,
 stages, backgrounds and sprite sheets straight from your dump, plus
 everything in `mb_data/` on top, and hands it to `mkdcdisc` together with
-`smbdc.elf`.
+the pre-built `smbdc-release.elf`.
 
 You can also run the conversion on its own:
 
@@ -105,7 +105,7 @@ tools/build_assets.sh
 | Variable | Default | Effect |
 |---|---|---|
 | `PAD` | `1` | Pad the image for CD-R burning. `PAD=0` = small image, SD/emulator only |
-| `ELF` | `smbdc.elf` | Use a different game binary |
+| `ELF` | `smbdc-release.elf` | Use a different game binary |
 | `SKIP_ASSETS` | `0` | `1` packs `mb_data/` as it is and runs no conversion |
 | `SKIP_SDISO` | `0` | `1` writes only the `.cdi` |
 | `MKDCDISC` | bundled | Path to another `mkdcdisc` |

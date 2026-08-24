@@ -4,6 +4,7 @@ custom_assets/audio/extracted/
 custom_assets/audio/extracted_comn/
 custom_assets/audio/sfx/
 mb_data/*.vqt
+mb_data/*.vq
 mb_data/*.wav
 mb_data/mus_*.adp
 

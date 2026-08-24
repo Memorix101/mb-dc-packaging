@@ -111,27 +111,77 @@ done
 # theme on every sunset floor (beginner 6-8) and shifted desert/arctic/
 # storm/extra by one.
 gcadp="$root/smb1_content/test/snd/adp"
+# Seamless loop pipeline (the old per-file resample clicked at every seam:
+# each 48->32 kHz run has filter warm-up/flush transients at the file
+# edges, and the intro->loop and loop->loop joins landed exactly on those
+# edges - the "loops a bit disjointed" report). Now the segments are
+# decoded to raw PCM, CONCATENATED, resampled as ONE continuous stream and
+# split byte-exactly afterwards: every seam the player ever crosses is
+# interior to a single resampler run. For the wrap seam the loop is taken
+# as the MIDDLE window of lp+lp(+lp), so both of its edges have real
+# musical context instead of a filter flush.
 mus() {  # mus <track> <gcbase>
     local t="$1" b="$2"
-    local in=""
+    local in="" lp=""
     if   [ -f "$gcadp/${b}_int.adp" ]; then in="$gcadp/${b}_int.adp"
     elif [ -f "$gcadp/${b}_all.adp" ]; then in="$gcadp/${b}_all.adp"
     fi
-    if [ -n "$in" ] && ! uptodate "$out/mus_${t}_intro.adp" "$in"; then
-        ffmpeg -loglevel error -y -i "$in" -map_metadata -1 -fflags +bitexact -ar 32000 -ac 2 \
-            -sample_fmt s16 "$tmp/m.wav"
-        wav2adpcm -n -i -t "$tmp/m.wav" "$out/mus_${t}_intro.adp"
-        echo "music: ${t}_intro ($(basename "$in" .adp))"
-    fi
-    local lp=""
     if   [ -f "$gcadp/${b}_lp.adp" ]; then lp="$gcadp/${b}_lp.adp"
     elif [ -f "$gcadp/${b}.adp"    ]; then lp="$gcadp/${b}.adp"
     fi
-    if [ -n "$lp" ] && ! uptodate "$out/mus_${t}_loop.adp" "$lp"; then
-        ffmpeg -loglevel error -y -i "$lp" -map_metadata -1 -fflags +bitexact -ar 32000 -ac 2 \
-            -sample_fmt s16 "$tmp/m.wav"
+    [ -z "$in" ] && [ -z "$lp" ] && return
+    # The loop's cut offsets depend on the intro length, so intro and loop
+    # re-encode together: only skip when every output is newer than every
+    # source.
+    local stale=0 s
+    for s in "$in" "$lp"; do
+        [ -n "$s" ] || continue
+        if [ -n "$in" ] && ! uptodate "$out/mus_${t}_intro.adp" "$s"; then stale=1; fi
+        if [ -n "$lp" ] && ! uptodate "$out/mus_${t}_loop.adp"  "$s"; then stale=1; fi
+    done
+    [ "$stale" = "0" ] && return
+    # decode to raw 48 kHz stereo s16 (sample counts = bytes/4)
+    local n_int48=0 n_lp48=0
+    : > "$tmp/cat.raw"
+    if [ -n "$in" ]; then
+        ffmpeg -loglevel error -y -i "$in" -map_metadata -1 -f s16le \
+            -ar 48000 -ac 2 "$tmp/int.raw"
+        n_int48=$(( $(stat -c %s "$tmp/int.raw") / 4 ))
+        cat "$tmp/int.raw" >> "$tmp/cat.raw"
+    fi
+    if [ -n "$lp" ]; then
+        ffmpeg -loglevel error -y -i "$lp" -map_metadata -1 -f s16le \
+            -ar 48000 -ac 2 "$tmp/lp.raw"
+        n_lp48=$(( $(stat -c %s "$tmp/lp.raw") / 4 ))
+        # two copies: [0] = the one we cut, [1] = tail context (no flush
+        # edge at the loop end). Loop-only tracks get a third at the front
+        # so the loop start has warm-up context too.
+        [ -z "$in" ] && cat "$tmp/lp.raw" >> "$tmp/cat.raw"
+        cat "$tmp/lp.raw" "$tmp/lp.raw" >> "$tmp/cat.raw"
+    fi
+    # one continuous 48->32 kHz resample over the whole chain
+    ffmpeg -loglevel error -y -f s16le -ar 48000 -ac 2 -i "$tmp/cat.raw" \
+        -f s16le -ar 32000 -ac 2 "$tmp/full.raw"
+    # output-side sample counts (x2/3, rounded, kept even)
+    local n_int32=$(( (n_int48 * 2 + 1) / 3 & ~1 ))
+    local n_lp32=$((  (n_lp48  * 2 + 1) / 3 & ~1 ))
+    local pre32=$n_int32
+    [ -z "$in" ] && pre32=$n_lp32   # loop-only: skip the warm-up copy
+    if [ -n "$in" ]; then
+        head -c $(( n_int32 * 4 )) "$tmp/full.raw" > "$tmp/seg.raw"
+        ffmpeg -loglevel error -y -f s16le -ar 32000 -ac 2 -i "$tmp/seg.raw" \
+            -fflags +bitexact "$tmp/m.wav"
+        wav2adpcm -n -i -t "$tmp/m.wav" "$out/mus_${t}_intro.adp"
+        echo "music: ${t}_intro ($(basename "$in" .adp), seamless)"
+    fi
+    if [ -n "$lp" ]; then
+        dd if="$tmp/full.raw" of="$tmp/seg.raw" bs=1M status=none \
+           iflag=skip_bytes,count_bytes \
+           skip=$(( pre32 * 4 )) count=$(( n_lp32 * 4 ))
+        ffmpeg -loglevel error -y -f s16le -ar 32000 -ac 2 -i "$tmp/seg.raw" \
+            -fflags +bitexact "$tmp/m.wav"
         wav2adpcm -n -i -t "$tmp/m.wav" "$out/mus_${t}_loop.adp"
-        echo "music: ${t}_loop"
+        echo "music: ${t}_loop (seamless)"
     fi
 }
 if [ -d "$gcadp" ]; then
