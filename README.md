@@ -73,40 +73,6 @@ asset change is a matter of seconds.
 > `PAD=0` images are **not** safe to burn: the padding exists because real
 > CD drives read the last sectors of a data track unreliably.
 
-## What the conversion actually does
-
-`tools/make_cdi.sh` calls `tools/build_assets.sh`, which fills `mb_data/`:
-
-| Step | From | To | Note |
-|---|---|---|---|
-| 1. VQ textures | `st*/*.tpl`, `bg/*.tpl` | `mb_data/*.vqt` | GameCube textures re-encoded for the PowerVR. The slow step, runs on all CPU cores |
-| 2. Sound effects | `snd/mkb/allse.*`, `comn.*` | `custom_assets/audio/sfx/*.wav` | MusyX banks unpacked and the 94 cues the port uses named, including the MeeMee/Baby/GonGon voice sets |
-| 3. Audio | step 2 + `snd/adp/*.adp` | `mb_data/*.wav`, `mb_data/mus_*.adp` | AICA ADPCM; effects 22 kHz mono, music 32 kHz stereo |
-| 4. Custom images | `custom_assets/*.png` | `mb_data/*.raw`, `*.vq` | optional; `beautifulstar`, `sparkle_starring`, `goal`, `title_bg`, `boot_logo` and `dc_controller` (pause-menu How-to-play diagram) replace the shipped textures |
-| 5. Attract film | `custom_assets/attract_intro.mp4`, `attract.wav` | `mb_data/attract.roq`, `mus_logo_intro.adp` | the boot logo film as silent RoQ plus its audio as a one-shot music track; ships with the kit |
-
-Everything is incremental: outputs newer than their source are left alone.
-`FORCE=1` redoes them anyway.
-
-Step 1 also encodes one sprite sheet, `bmp/bmp_rnk.tpl` (ranking screen),
-which the game draws VQ-compressed. Step 3 encodes the stage themes, the
-title, select, name-entry and game-over tracks; the loops are cut from one
-continuous resample so the seams are silent. Sound effects are named by
-`tools/name_sfx.py` from the bank sample ids; every cue the game asks for
-is mapped, so the kit ships numbers, not audio.
-
-Then `make_cdi.sh` stages the disc directory `/cd/mb_data`: the models,
-stages, backgrounds, sprite sheets, the Monkey Target model set and the
-practice-mode stage previews straight from your dump, plus everything in
-`mb_data/` on top (`rankdef.txt` = the default ranking tables), and hands
-it to `mkdcdisc` together with the pre-built `smbdc-release.elf`.
-
-You can also run the conversion on its own:
-
-```bash
-tools/build_assets.sh
-```
-
 ## Options
 
 `tools/make_cdi.sh`:
