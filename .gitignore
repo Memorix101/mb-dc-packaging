@@ -8,6 +8,7 @@ mb_data/*.vq
 mb_data/*.wav
 mb_data/mus_*.adp
 
+
 # build output
 builds/
 *.cdi
@@ -22,3 +23,4 @@ __pycache__/
 flycast.log
 
 x/
+custom_assets/dc_controller.png

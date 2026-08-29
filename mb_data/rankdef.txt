@@ -1,0 +1,33 @@
+# Default ranking tables for a fresh game (no VMU save yet).
+#
+# One record per line:
+#   <course> <name> <score> <floor|--> <kind>
+#     course  beg | adv | exp   (master runs score into exp)
+#     name    up to 3 characters, '_' stands for a space
+#     score   plain number
+#     floor   floor number, or -- for "no floor" (prints as --)
+#     kind    0 normal, 1 extra (EX icon), 2 master (MASTER plate)
+#
+# Up to five records per course; missing rows fall back to the built-in
+# table in src/ranking.c. The list is sorted by score after loading, so
+# the order here does not matter. A valid VMU save replaces all of this.
+#
+# These are the initials the original ships with.
+
+beg NAG 50000 -- 0
+beg @RI 49000 -- 0
+beg SHO 48000 -- 0
+beg SAK 47000 -- 0
+beg A.V 46000 -- 0
+
+adv NAG 50000 -- 0
+adv JAM 49000 -- 0
+adv MKA 48000 -- 0
+adv ODA 47000 -- 0
+adv M.S 46000 -- 0
+
+exp NAG 50000 -- 0
+exp H.E 49000 -- 0
+exp JUN 48000 -- 0
+exp Y.S 47000 -- 0
+exp AGE 46000 -- 0

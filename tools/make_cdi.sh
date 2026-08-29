@@ -77,9 +77,18 @@ need() {  # need <source file> [destination name]
 # shared models, animation data and the HUD sprite sheets
 for f in init/common.gma init/common.tpl init/common_p.lz \
          motdat.lz motinfo.lz motlabel.bin motskl.bin \
-         bmp/bmp_com.tpl bmp/bmp_nml.tpl bmp/bmp_adv.tpl bmp/bmp_sel.tpl; do
+         bmp/bmp_com.tpl bmp/bmp_nml.tpl bmp/bmp_adv.tpl bmp/bmp_sel.tpl \
+         bmp/bmp_rnk.tpl bmp/bmp_tgt.tpl; do
     need "$gcsrc/$f"
 done
+
+# Monkey Target: the minigame model set (glider, rings, bomb, star)
+need "$gcsrc/init/m_pilot.gma"
+need "$gcsrc/init/m_pilot.tpl"
+
+# Practice stage select previews: a headerless array of 200 RGB5A3 images
+# (index = stage id - 1), the size the GC stage select reads
+need "$gcsrc/preview/192x132.tpl"
 
 # compressed archives, renamed for ISO9660 (see above)
 need "$gcsrc/ape/boy_l.gma.lz" boy_l_gma.lz

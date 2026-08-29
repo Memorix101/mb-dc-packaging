@@ -42,6 +42,10 @@ OUT = os.path.join(ROOT, 'custom_assets/audio/sfx')
 #   per-second timer beep 0x01B2. Multiple go/goal variations exist.
 MAPPING = {
     'goal_enter':           ('allse', 0x0001),  # 2.2s jingle (verify)
+    'goal_tape':            ('allse', 0x0203),  # goal tape break
+    'name_ok':              ('allse', 0x0204),  # name entry commit
+    'title_start':          ('allse', 0x0201),  # START on the title: GC id
+                                                # 0x162 = SEB_SE_JGL_SEPCM_3
     # gameplay SE (musyx_map: item_coin.c ids 3/0x39, ball.c 0x12/13/14,
     # stobj.c bumper 0x5011 -> low bits 0x11)
     'banana_collect':       ('allse', 0x0201),  # JGL_SEPCM_3
@@ -80,6 +84,10 @@ MAPPING = {
     'an_sel_advanced':      ('comn',  0x00E4),
     'an_sel_expert':        ('comn',  0x0156),
     'an_sel_master':        ('comn',  0x01A7),
+    'an_sel_mode':          ('comn',  0x021C),  # "select mode"
+    'an_sel_players':       ('comn',  0x019C),  # "select number of players"
+    'an_sel_stage':         ('comn',  0x021D),  # "select stage" (practice)
+    'an_thanks':            ('comn',  0x022B),  # "thank you for playing"
     # AiAi (boy group) voice set - musyx_map on the voice call sites,
     # charaId 0 picks the boy entry (VO1_*)
     'vo_banana':            ('allse', 0x0125),  # 0x281F single banana
@@ -87,7 +95,11 @@ MAPPING = {
     'vo_land_soft':         ('allse', 0x011E),  # id 0x17, COLI5
     'vo_land_med':          ('allse', 0x011C),  # id 0x18, COLI3
     'vo_land_hard':         ('allse', 0x011F),  # id 0x1A, COLI7
-    'vo_goal':              ('allse', 0x0118),  # id 0x1E, goal-enter cheer
+    'vo_start':             ('allse', 0x0118),  # id 0x1E, "let's go" when the
+                                                # ball becomes playable
+                                                # (BOYH_START1)
+    'vo_cheer':             ('allse', 0x010D),  # id 0x59, goal / name entry
+                                                # cheer (BOYH_GOAL1)
     'vo_1up':               ('allse', 0x0110),  # id 0x52, LAUGH2
     # free-tumble panic voices: BOYH_OCHISOU 1,2,3,5,7,8,9, the random
     # table ball_sound picks from while the ball falls (sound.h)
@@ -120,9 +132,12 @@ MAPPING = {
     'vo_land_hard_g':       ('allse', 0x0180),
     'vo_land_hard_k':       ('allse', 0x00FB),
     'vo_land_hard_o':       ('allse', 0x0079),
-    'vo_goal_g':            ('allse', 0x0184),
-    'vo_goal_k':            ('allse', 0x00FE),
-    'vo_goal_o':            ('allse', 0x0071),
+    'vo_start_g':           ('allse', 0x0184),
+    'vo_start_k':           ('allse', 0x00FE),
+    'vo_start_o':           ('allse', 0x0071),
+    'vo_cheer_g':           ('allse', 0x0184),  # MeeMee has one take for both
+    'vo_cheer_k':           ('allse', 0x00ED),
+    'vo_cheer_o':           ('allse', 0x0073),
     'vo_1up_g':             ('allse', 0x0185),
     'vo_1up_k':             ('allse', 0x00FF),
     'vo_1up_o':             ('allse', 0x0065),

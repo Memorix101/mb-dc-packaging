@@ -14,6 +14,8 @@
 #   2. sound effects GC MusyX banks       -> custom_assets/audio/sfx/*.wav
 #   3. audio         sfx + GC music       -> mb_data/*.wav, mus_*.adp
 #   4. custom images custom_assets/*.png  -> mb_data/*.raw, *.vq
+#   5. attract video custom_assets/attract_intro.mp4 -> mb_data/attract.roq,
+#                                            mus_logo_intro.adp
 #
 # Usage:
 #   tools/build_assets.sh
@@ -24,6 +26,7 @@
 #   SKIP_SFX=1    skip step 2
 #   SKIP_AUDIO=1  skip step 3
 #   SKIP_PNG=1    skip step 4
+#   SKIP_VIDEO=1  skip step 5
 #   FORCE=1       re-encode everything, ignore up-to-date outputs
 
 set -euo pipefail
@@ -57,9 +60,12 @@ if [ "${SKIP_VQ:-0}" != "1" ]; then
     fi
     jobs_list=()
     while IFS= read -r -d '' p; do
-        # same scope as vqenc.py --batch: stage dirs and the bg dir only
-        case "$(basename "$(dirname "$p")")" in
-            st*|bg) ;;
+        # same scope as vqenc.py --batch: stage dirs and the bg dir, plus
+        # the one sprite sheet that is drawn VQ-compressed (ranking screen,
+        # src/rankscr.c). The other bmp_*.tpl sheets must NOT get a sidecar:
+        # their callers draw plain 16 bpp tiles.
+        case "$(basename "$(dirname "$p")")/$(basename "$p")" in
+            st*/*|bg/*|bmp/bmp_rnk.tpl) ;;
             *) continue ;;
         esac
         o="$out/$(basename "$p" .tpl).vqt"
@@ -70,9 +76,9 @@ if [ "${SKIP_VQ:-0}" != "1" ]; then
     done < <(find "$gcsrc" -mindepth 2 -maxdepth 2 -type f -name '*.tpl' -print0)
 
     if [ "${#jobs_list[@]}" -eq 0 ]; then
-        echo "[1/4] VQ textures: up to date"
+        echo "[1/5] VQ textures: up to date"
     else
-        echo "[1/4] VQ textures: encoding ${#jobs_list[@]} TPLs on $JOBS cores (this takes a while)"
+        echo "[1/5] VQ textures: encoding ${#jobs_list[@]} TPLs on $JOBS cores (this takes a while)"
         export VQENC="$here/vqenc.py" VQOUT="$out"
         printf '%s\0' "${jobs_list[@]}" | xargs -0 -r -P "$JOBS" -n1 sh -c '
             b=$(basename "$1" .tpl)
@@ -84,7 +90,7 @@ if [ "${SKIP_VQ:-0}" != "1" ]; then
         ' sh
     fi
 else
-    echo "[1/4] VQ textures: skipped (SKIP_VQ=1)"
+    echo "[1/5] VQ textures: skipped (SKIP_VQ=1)"
 fi
 
 # --- sound effects out of the GC MusyX banks --------------------------
@@ -102,29 +108,29 @@ if [ "${SKIP_SFX:-0}" != "1" ]; then
             comn)  dst="$custom/audio/extracted_comn" ;;
         esac
         if [ ! -f "$sdir" ] || [ ! -f "$samp" ]; then
-            echo "[2/4] sfx: $bank bank not in the dump, skipped"
+            echo "[2/5] sfx: $bank bank not in the dump, skipped"
             continue
         fi
         if [ "${FORCE:-0}" != "1" ] && [ -d "$dst" ] && [ -n "$(ls -A "$dst" 2>/dev/null)" ]; then
             continue
         fi
         banks_done=0
-        echo "[2/4] sfx: extracting $bank bank"
+        echo "[2/5] sfx: extracting $bank bank"
         python3 "$here/musyx_extract.py" "$sdir" "$samp" "$dst" >/dev/null
     done
-    [ "$banks_done" = "1" ] && echo "[2/4] sfx: banks already extracted"
+    [ "$banks_done" = "1" ] && echo "[2/5] sfx: banks already extracted"
     python3 "$here/name_sfx.py" >/dev/null || true
-    echo "[2/4] sfx: $(ls "$custom/audio/sfx" 2>/dev/null | wc -l) named effects in custom_assets/audio/sfx"
+    echo "[2/5] sfx: $(ls "$custom/audio/sfx" 2>/dev/null | wc -l) named effects in custom_assets/audio/sfx"
 else
-    echo "[2/4] sfx: skipped (SKIP_SFX=1)"
+    echo "[2/5] sfx: skipped (SKIP_SFX=1)"
 fi
 
 # --- audio ------------------------------------------------------------
 if [ "${SKIP_AUDIO:-0}" != "1" ]; then
-    echo "[3/4] audio: converting effects and music"
+    echo "[3/5] audio: converting effects and music"
     "$here/convert_audio.sh"
 else
-    echo "[3/4] audio: skipped (SKIP_AUDIO=1)"
+    echo "[3/5] audio: skipped (SKIP_AUDIO=1)"
 fi
 
 # --- custom images ----------------------------------------------------
@@ -154,9 +160,32 @@ if [ "${SKIP_PNG:-0}" != "1" ]; then
     # the coloured pad buttons that the runtime encoder washed out; needs
     # numpy on top of Pillow (same package as the texture step).
     conv png2vq.py   dc_controller.png     dc_controller.vq
-    echo "[4/4] images: done"
+    echo "[4/5] images: done"
 else
-    echo "[4/4] images: skipped (SKIP_PNG=1)"
+    echo "[4/5] images: skipped (SKIP_PNG=1)"
+fi
+
+# --- attract video -----------------------------------------------------
+# The boot attract film (custom_assets/attract_intro.mp4, ships with the
+# kit) becomes a silent RoQ plus the logo audio as a one-shot music track.
+# Incremental like the rest; without ffmpeg's roqvideo encoder the game
+# simply boots straight to the title (attract.c probes for the file).
+if [ "${SKIP_VIDEO:-0}" != "1" ]; then
+    vsrc="$custom/attract_intro.mp4"
+    if [ ! -f "$vsrc" ]; then
+        echo "[5/5] video: no custom_assets/attract_intro.mp4, skipped"
+    elif [ "${FORCE:-0}" != "1" ] && [ -f "$out/attract.roq" ] \
+         && [ "$out/attract.roq" -nt "$vsrc" ] \
+         && [ -f "$out/mus_logo_intro.adp" ] \
+         && [ "$out/mus_logo_intro.adp" -nt "$vsrc" ] \
+         && [ "$out/mus_logo_intro.adp" -nt "$custom/attract.wav" ]; then
+        echo "[5/5] video: up to date"
+    else
+        echo "[5/5] video: encoding the attract film"
+        "$here/convert_video.sh" "$vsrc"
+    fi
+else
+    echo "[5/5] video: skipped (SKIP_VIDEO=1)"
 fi
 
 echo "Assets ready in $out ($(ls "$out" | wc -l) files)"

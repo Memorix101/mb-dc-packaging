@@ -40,29 +40,34 @@ trap 'rm -rf "$tmp"' EXIT
 
 # Re-encoding the whole soundtrack costs minutes with the Python encoder, so
 # outputs that are newer than their source are left alone. FORCE=1 redoes all.
+# An output older than this script is stale too: the music pipeline has
+# changed (seamless loops), and a kit update must re-encode without the
+# user knowing to pass FORCE=1.
 uptodate() {  # uptodate <output> <source>
-    [ "${FORCE:-0}" != "1" ] && [ -f "$1" ] && [ "$1" -nt "$2" ]
+    [ "${FORCE:-0}" != "1" ] && [ -f "$1" ] && [ "$1" -nt "$2" ] \
+        && [ "$1" -nt "$here/convert_audio.sh" ]
 }
 
 # --- sound effects: 22050 Hz mono AICA-ADPCM WAV -------------------------
-SFX="goal_enter banana_collect banana_bunch_collect fallout ball_woosh \
+SFX="goal_enter goal_tape name_ok title_start \
+     banana_collect banana_bunch_collect fallout ball_woosh \
      ball_hit_soft ball_hit_med ball_hit_hard bumper_hit ball_roll \
      an_ready an_go_1 an_go_2 an_goal an_hurryup an_timeover an_perfect \
      an_fallout an_gameover timer_beep \
      an_count_0 an_count_1 an_count_2 an_count_3 an_count_4 \
      an_count_5 an_count_6 an_count_7 an_count_8 an_count_9 \
      vo_banana vo_banana_bunch vo_land_soft vo_land_med vo_land_hard \
-     vo_goal vo_1up menu_pause menu_cursor menu_select \
+     vo_start vo_cheer vo_1up menu_pause menu_cursor menu_select \
      vo_tumble1 vo_tumble2 vo_tumble3 vo_tumble4 vo_tumble5 \
      vo_tumble6 vo_tumble7 \
      an_sel_course an_sel_beginner an_sel_advanced an_sel_expert \
-     an_sel_master"
+     an_sel_master an_sel_mode an_sel_players an_sel_stage an_thanks"
 
 # Per-character voice sets: sound.c looks for vo_<cue>_g/_k/_o (MeeMee,
 # Baby, GonGon) beside the AiAi base files and falls back to the base when
 # a variant is absent. Same cue list, three suffixes.
 VOICES="vo_banana vo_banana_bunch vo_land_soft vo_land_med vo_land_hard \
-        vo_goal vo_1up vo_tumble1 vo_tumble2 vo_tumble3 vo_tumble4 \
+        vo_start vo_cheer vo_1up vo_tumble1 vo_tumble2 vo_tumble3 vo_tumble4 \
         vo_tumble5 vo_tumble6 vo_tumble7"
 for v in $VOICES; do
     for c in g k o; do
@@ -198,6 +203,11 @@ if [ -d "$gcadp" ]; then
     mus theme  theme   # STRM_THEME (main theme, loop-only)
     mus adv    adv     # STRM_ADV (attract / title, intro+loop)
     mus sel    sel     # STRM_SEL (course/character select, intro+loop)
+    mus entry  ent     # name entry room (GC u_play_music(66) in
+                       # submode_game_nameentry_ready_init_func)
+    mus gameover ovr   # GAME OVER jingle, 4.2 s (GC u_play_music(0x2A) =
+                       # STRM_OVR_INT in submode_game_over_init_func).
+                       # Loop-only: the disc has no ovr_int/ovr_all.
 else
     echo "GC adp dir not found ($gcadp), skipping music"
 fi
